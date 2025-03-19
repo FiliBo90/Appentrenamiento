@@ -2,359 +2,615 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>App de Entrenamiento</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>GymApp Versión Definitiva 💪</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Tailwind CSS (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Estilos extra -->
+  <style>
+    /* Sombra suave en contenedores */
+    .shadow-soft {
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+    /* Efecto hover en los acordeones y botones */
+    .accordion-btn:hover, button:hover {
+      transform: translateY(-1px);
+    }
+    .accordion-btn, button {
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    /* Fondo gradiente suave en la parte superior de la pantalla (Hero) */
+    .hero-overlay {
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7));
+    }
+    /* Contenido de acordeón con transición */
+    .accordion-content {
+      transition: all 0.3s ease;
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 text-gray-800">
-  <!-- Encabezado -->
-  <header class="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-6 text-center shadow-lg">
-    <h1 class="text-3xl font-extrabold">💪 App de Entrenamiento Personal</h1>
-    <p class="text-lg mt-2">¡Lleva tus entrenamientos al siguiente nivel! 🚀</p>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+  <!-- Hero con imagen de gimnasio -->
+  <section 
+    class="relative bg-cover bg-center h-64 flex items-center justify-center"
+    style="background-image: url('https://images.unsplash.com/photo-1583454110550-02124b7a216f?auto=format&fit=crop&w=1600&q=80')">
+    <div class="hero-overlay w-full h-full absolute top-0 left-0"></div>
+    <h1 class="relative text-white text-4xl font-extrabold drop-shadow-md">GymApp Versión Definitiva 💪</h1>
+  </section>
+
+  <!-- Barra de navegación -->
+  <header class="bg-white shadow-soft p-4 flex justify-center space-x-4">
+    <button id="btnRutina" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+      Rutina
+    </button>
+    <button id="btnProgreso" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+      Progreso
+    </button>
   </header>
 
   <!-- Contenido principal -->
-  <main class="p-6">
-    <!-- Selector de Mes -->
-    <div class="mb-6">
-      <label for="monthSelector" class="block text-xl font-semibold mb-2">📅 Selecciona el Mes:</label>
-      <select id="monthSelector" class="w-full p-3 border rounded-lg shadow-md bg-white">
-        <option value="month1">Mes 1</option>
-        <option value="month2">Mes 2</option>
-        <option value="month3">Mes 3</option>
-        <option value="month4">Mes 4</option>
-        <option value="month5">Mes 5</option>
-        <option value="month6">Mes 6</option>
-      </select>
-    </div>
+  <main class="flex-1 p-4">
 
-    <!-- Selector de Día -->
-    <div class="mb-6">
-      <label for="daySelector" class="block text-xl font-semibold mb-2">📆 Selecciona el Día:</label>
-      <select id="daySelector" class="w-full p-3 border rounded-lg shadow-md bg-white">
-        <option value="day1">Día 1</option>
-        <option value="day2">Día 2</option>
-        <option value="day3">Día 3</option>
-        <option value="day4">Día 4</option>
-      </select>
-    </div>
-
-    <!-- Rutinas de Entrenamiento -->
-    <section id="routineSection" class="mb-8">
-      <h2 class="text-2xl font-bold mb-4">🏋️‍♂️ Rutina de Entrenamiento</h2>
-      <div id="routineContainer" class="space-y-4">
-        <!-- Las rutinas se cargarán dinámicamente aquí -->
+    <!-- Sección Rutina -->
+    <section id="rutinaSection" class="mb-8">
+      <div class="text-center mb-4">
+        <h2 class="text-2xl font-bold">Rutina de Entrenamiento</h2>
+        <p class="text-gray-600">Selecciona un mes para ver los días y ejercicios.</p>
       </div>
+
+      <!-- Botones de Mes -->
+      <div class="flex flex-wrap justify-center mb-6 gap-2">
+        <button class="mesTab px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" data-mes="Mes 1">
+          Mes 1
+        </button>
+        <button class="mesTab px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" data-mes="Mes 2">
+          Mes 2
+        </button>
+        <button class="mesTab px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" data-mes="Mes 3">
+          Mes 3
+        </button>
+      </div>
+
+      <!-- Contenedor donde se inyecta la rutina -->
+      <div id="rutinaContent" class="max-w-3xl mx-auto space-y-4"></div>
     </section>
 
-    <!-- Gráfico de Progreso de Pesos -->
-    <section id="weightProgressSection" class="mb-8">
-      <h2 class="text-2xl font-bold mb-4">📈 Progreso de Pesos</h2>
-      <canvas id="weightProgressChart" class="bg-white p-4 rounded-lg shadow-md"></canvas>
+    <!-- Sección Progreso -->
+    <section id="progresoSection" class="hidden">
+      <!-- Formulario para registrar progreso -->
+      <div class="bg-white shadow-soft rounded p-4 mb-6 max-w-3xl mx-auto">
+        <h2 class="text-xl font-bold mb-2">Registrar Progreso 📈</h2>
+        <form id="progressForm" class="space-y-4">
+          <div>
+            <label class="block mb-1 font-semibold">Fecha:</label>
+            <input type="date" id="progressDate" class="w-full p-2 border rounded" required />
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold">Mes:</label>
+            <select id="progressMes" class="w-full p-2 border rounded">
+              <option value="">Seleccione Mes</option>
+              <option value="Mes 1">Mes 1 - Fase de Adaptación y Técnica</option>
+              <option value="Mes 2">Mes 2 - Fase de Progresión de Carga y Variación</option>
+              <option value="Mes 3">Mes 3 - Fase de Consolidación y Fuerza Máxima</option>
+            </select>
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold">Día:</label>
+            <select id="progressDia" class="w-full p-2 border rounded">
+              <option value="">Seleccione Día</option>
+            </select>
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold">Ejercicio:</label>
+            <select id="progressEjercicio" class="w-full p-2 border rounded">
+              <option value="">Seleccione Ejercicio</option>
+            </select>
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold">Series (Reps y Peso):</label>
+            <div id="seriesContainer" class="space-y-2">
+              <!-- Filas de series dinámicas -->
+            </div>
+            <button type="button" id="addSeriesBtn" class="mt-2 px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700">
+              ➕ Agregar Serie
+            </button>
+          </div>
+          <button type="submit" class="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            Guardar Progreso 💾
+          </button>
+        </form>
+      </div>
+
+      <!-- Historial de progreso -->
+      <div class="bg-white shadow-soft rounded p-4 mb-6 max-w-3xl mx-auto">
+        <h2 class="text-xl font-bold mb-2">Historial de Progreso 📚</h2>
+        <div id="progressList" class="space-y-2">
+          <!-- Se inyectan registros guardados -->
+        </div>
+      </div>
+
+      <!-- Sección de Gráfico -->
+      <div class="bg-white shadow-soft rounded p-4 max-w-3xl mx-auto">
+        <h2 class="text-xl font-bold mb-2">Gráfico de Progresos 📊</h2>
+        <p class="text-sm text-gray-500 mb-4">
+          Selecciona el mes, día, ejercicio y la serie que deseas graficar. Asegúrate de haber registrado progreso para que se muestre.
+        </p>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+          <select id="chartMes" class="p-2 border rounded">
+            <option value="">Seleccione Mes</option>
+            <option value="Mes 1">Mes 1 - Adaptación</option>
+            <option value="Mes 2">Mes 2 - Progresión</option>
+            <option value="Mes 3">Mes 3 - Consolidación</option>
+          </select>
+          <select id="chartDia" class="p-2 border rounded">
+            <option value="">Seleccione Día</option>
+          </select>
+          <select id="chartEjercicio" class="p-2 border rounded">
+            <option value="">Seleccione Ejercicio</option>
+          </select>
+          <select id="chartSerie" class="p-2 border rounded">
+            <option value="">Serie</option>
+            <option value="1">Serie 1</option>
+            <option value="2">Serie 2</option>
+            <option value="3">Serie 3</option>
+            <option value="4">Serie 4</option>
+            <option value="5">Serie 5</option>
+          </select>
+        </div>
+        <button id="updateChartBtn" class="mb-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+          Actualizar Gráfico 🔄
+        </button>
+        <canvas id="progressChart" class="w-full h-64"></canvas>
+      </div>
     </section>
   </main>
 
-  <!-- Pie de página -->
-  <footer class="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 text-center shadow-lg">
-    <p class="text-lg">© 2025 App de Entrenamiento Personal. Todos los derechos reservados. 🌟</p>
+  <footer class="bg-white p-4 text-center text-gray-500">
+    <p>© 2025 - GymApp Versión Definitiva. Todos los derechos reservados.</p>
   </footer>
 
-  <!-- JavaScript -->
+  <!-- JavaScript principal -->
   <script>
-    // Datos iniciales del programa
-    const program = {
-      month1: {
-        day1: [
-          { name: 'Press de banca con barra', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Dominadas con agarre prono', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Press inclinado con mancuernas', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Remo con barra', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Face pulls en máquina o polea', reps: '12-15', series: 3, tempo: '2-0-2-0', rest: '45"', alternative: 'N/A' }
+    // ------------------------------------------------------------
+    // 1. DATOS DE LA RUTINA
+    // ------------------------------------------------------------
+    const routine = {
+      "Mes 1": {
+        "Día 1: PUSH": [
+          { nombre: "Calentamiento: Movilidad de hombros y pectorales", detalle: "5–10 min. Rotaciones, band pull-aparts, estiramientos dinámicos" },
+          { nombre: "Press de banca (Barra)", detalle: "4 x 5, Tempo: 2-0-1-0, Descanso: 2–3 min. Alternativa: Press con mancuernas" },
+          { nombre: "Press militar (Barra)", detalle: "4 x 5, Tempo: 2-0-1-0, Descanso: 2–3 min. Alternativa: Press Arnold" },
+          { nombre: "Press inclinado (Barra o mancuernas)", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 90 seg. Alternativa: Flexiones inclinadas" },
+          { nombre: "Elevaciones laterales (estilo Poliquin)", detalle: "3 x 12–14, Tempo: 2-0-1-0, Descanso: 60 seg" },
+          { nombre: "Extensión de tríceps (barra EZ o mancuerna)", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 60 seg. Alternativa: Fondos asistidos" },
+          { nombre: "Core: Plancha", detalle: "3 x 30–45 seg, Descanso: 60 seg" }
         ],
-        day2: [
-          { name: 'Sentadilla trasera con barra', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Peso muerto rumano con barra', reps: '8-10', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Zancadas alternas con mancuernas', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Hip thrust con barra', reps: '12-15', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Plancha lateral', reps: '30-40 seg por lado', series: 3, tempo: 'N/A', rest: '30"', alternative: 'N/A' }
+        "Día 2: PULL": [
+          { nombre: "Calentamiento: Movilidad de hombros y espalda", detalle: "5–10 min. Rotaciones, band pull-aparts" },
+          { nombre: "Dominadas (asistidas o libres)", detalle: "4 x 6–8, Tempo: 2-0-1-0, Descanso: 2 min. Alternativa: Jalón en polea" },
+          { nombre: "Remo con barra (Barbell Row)", detalle: "4 x 5–8, Tempo: 2-0-1-0, Descanso: 2 min" },
+          { nombre: "Face Pulls con banda", detalle: "3 x 10–12, Tempo: 2-0-1-0, Descanso: 90 seg" },
+          { nombre: "Curl de bíceps con barra EZ", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 60 seg" },
+          { nombre: "Reverse Flys con mancuernas", detalle: "3 x 10–12, Tempo: 2-0-1-0, Descanso: 60 seg" }
         ],
-        day3: [
-          { name: 'Press militar con barra', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Remo unilateral con mancuerna', reps: '8-10', series: 4, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Dips lastrados', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Remo invertido', reps: '12-15', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Curl con barra', reps: '12-15', series: 3, tempo: '2-0-2-0', rest: '45"', alternative: 'N/A' }
+        "Día 3: LEGS": [
+          { nombre: "Calentamiento: Movilidad, foam rolling y activación", detalle: "5–10 min. Incluye puentes de glúteos" },
+          { nombre: "Sentadilla con caja (Box Squat)", detalle: "4 x 5–8, Tempo: 3-0-1-0, Descanso: 2–3 min" },
+          { nombre: "Hip Thrust", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 90 seg" },
+          { nombre: "Peso muerto rumano", detalle: "3 x 6–8, Tempo: 3-0-1-0, Descanso: 2 min" },
+          { nombre: "Bulgarian Split Squat", detalle: "3 x 8 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
+          { nombre: "Estabilidad: Band Walks o Clamshells", detalle: "3 x 15 pasos por lado, Descanso: 60 seg" },
+          { nombre: "Elevación de gemelos", detalle: "3 x 12–15, Tempo: 2-0-1-0, Descanso: 60 seg" }
         ],
-        day4: [
-          { name: 'Sentadilla frontal con barra', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Peso muerto convencional', reps: '8-10', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Step-up con mancuernas', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Ab wheel rollout', reps: '12-15', series: 3, tempo: '2-0-2-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Pallof press', reps: '12-15 por lado', series: 3, tempo: 'N/A', rest: '45"', alternative: 'N/A' }
+        "Día 4: TOTAL BODY": [
+          { nombre: "Calentamiento: Movilidad general y activación", detalle: "5–10 min" },
+          { nombre: "Landmine Squat to Press", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 2–3 min" },
+          { nombre: "Kettlebell Swing", detalle: "3 x 10, Ejecución explosiva, Descanso: 90 seg" },
+          { nombre: "Single-Leg Romanian Deadlift", detalle: "3 x 8 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
+          { nombre: "Pallof Press", detalle: "3 x 10 (cada lado), Tempo: 2-0-2-0, Descanso: 60 seg" },
+          { nombre: "Opcional: Box Step Jump", detalle: "2 x 5 (cada pierna), Descanso: 60 seg" }
         ]
       },
-      month2: {
-        day1: [
-          { name: 'Spoto press', reps: '5-6', series: 4, tempo: '3-1-1-0', rest: '2 min', alternative: 'N/A' },
-          { name: 'Dominadas con agarre neutro', reps: '5-6', series: 4, tempo: '3-1-1-0', rest: '2 min', alternative: 'N/A' },
-          { name: 'Press inclinado con barra', reps: '8-10', series: 3, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Remo con barra (agarre supino)', reps: '8-10', series: 3, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Face pulls', reps: '12-15', series: 3, tempo: '2-0-2-0', rest: '45"', alternative: 'N/A' }
+
+      "Mes 2": {
+        "Día 1: PUSH": [
+          { nombre: "Calentamiento: Movilidad hombros y pectorales", detalle: "5–10 min. Rotaciones, band pull-aparts" },
+          { nombre: "Press de banca con mancuernas", detalle: "4 x 5–6, Tempo: 2-0-1-0, Descanso: 2–3 min" },
+          { nombre: "Press militar (Barra o mancuernas)", detalle: "4 x 5–6, Tempo: 2-0-1-0, Descanso: 2–3 min" },
+          { nombre: "Press inclinado con mancuernas", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 90 seg" },
+          { nombre: "Elevaciones laterales (con mancuernas)", detalle: "3 x 12–14, Tempo: 2-0-1-0, Descanso: 60 seg" },
+          { nombre: "Extensión de tríceps en banco (con mancuerna)", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 60 seg" },
+          { nombre: "Core: Plancha lateral", detalle: "3 x 30–45 seg, Descanso: 60 seg" }
         ],
-        day2: [
-          { name: 'Sentadilla trasera con barra', reps: '5-6', series: 4, tempo: '3-1-1-0', rest: '2 min', alternative: 'N/A' },
-          { name: 'Peso muerto convencional', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '2 min', alternative: 'N/A' },
-          { name: 'Zancadas con mancuernas', reps: '8-10', series: 3, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Hip thrust', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Plancha lateral', reps: '30-40 seg por lado', series: 3, tempo: 'N/A', rest: '30"', alternative: 'N/A' }
+        "Día 2: PULL": [
+          { nombre: "Calentamiento: Movilidad de hombros y espalda", detalle: "5–10 min. Rotaciones, band pull-aparts" },
+          { nombre: "Dominadas (variación agarre supino o mixto)", detalle: "4 x 6–8, Tempo: 2-0-1-0, Descanso: 2 min" },
+          { nombre: "Remo con mancuerna a un brazo (apoyado en banco)", detalle: "4 x 6–8, Tempo: 2-0-1-0, Descanso: 2 min" },
+          { nombre: "Cable Row con agarre amplio (si es posible)", detalle: "3 x 10–12, Tempo: 2-0-1-0, Descanso: 90 seg" },
+          { nombre: "Curl de bíceps alterno con mancuernas", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 60 seg" },
+          { nombre: "Face Pulls con banda (variando el ángulo)", detalle: "3 x 10–12, Tempo: 2-0-1-0, Descanso: 60 seg" }
         ],
-        day3: [
-          { name: 'Press militar con barra', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Remo unilateral con mancuerna', reps: '8-10', series: 4, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Dips lastrados', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Remo invertido', reps: '12-15', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Curl con barra', reps: '12-15', series: 3, tempo: '2-0-2-0', rest: '45"', alternative: 'N/A' }
+        "Día 3: LEGS": [
+          { nombre: "Calentamiento: Movilidad, foam rolling y activación", detalle: "5–10 min. Incluye puentes de glúteos" },
+          { nombre: "Front Squat o Sentadilla frontal", detalle: "4 x 5–8, Tempo: 3-0-1-0, Descanso: 2–3 min" },
+          { nombre: "Hip Thrust (Barra o mancuerna)", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 90 seg" },
+          { nombre: "Peso muerto rumano (Barra o mancuerna)", detalle: "3 x 6–8, Tempo: 3-0-1-0, Descanso: 2 min" },
+          { nombre: "Zancadas caminando", detalle: "3 x 8–10 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
+          { nombre: "Estabilidad: Clamshells con banda", detalle: "3 x 15 pasos por lado, Descanso: 60 seg" },
+          { nombre: "Elevación de gemelos (de pie o en prensa)", detalle: "3 x 12–15, Tempo: 2-0-1-0, Descanso: 60 seg" }
         ],
-        day4: [
-          { name: 'Sentadilla frontal con barra', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Peso muerto convencional', reps: '8-10', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Step-up con mancuernas', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Ab wheel rollout', reps: '12-15', series: 3, tempo: '2-0-2-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Pallof press', reps: '12-15 por lado', series: 3, tempo: 'N/A', rest: '45"', alternative: 'N/A' }
+        "Día 4: TOTAL BODY": [
+          { nombre: "Calentamiento: Movilidad general y activación", detalle: "5–10 min" },
+          { nombre: "Dumbbell Thruster (con mancuernas)", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 2–3 min" },
+          { nombre: "Kettlebell Swing (variando rango de movimiento)", detalle: "3 x 10, Explosivo / 2-0-1-0, Descanso: 90 seg" },
+          { nombre: "Single-Leg Glute Bridge con mancuerna", detalle: "3 x 8 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
+          { nombre: "Pallof Press (con banda o polea)", detalle: "3 x 10 (cada lado), Tempo: 2-0-2-0, Descanso: 60 seg" },
+          { nombre: "Opcional: Step-ups dinámicos", detalle: "2 x 6–8 (cada pierna), Descanso: 60 seg" }
         ]
       },
-      month3: {
-        day1: [
-          { name: 'Press de banca con barra con pausa', reps: '6-8', series: 4, tempo: '4-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Dominadas con agarre prono', reps: '6-8', series: 4, tempo: '4-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Press inclinado con mancuernas con pausa', reps: '10-12', series: 3, tempo: '3-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Remo con barra', reps: '10-12', series: 3, tempo: '3-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Face pulls', reps: '12-15', series: 3, tempo: '3-0-2-0', rest: '45"', alternative: 'N/A' }
+
+      "Mes 3": {
+        "Día 1: PUSH": [
+          { nombre: "Calentamiento: Movilidad hombros y pectorales", detalle: "5–10 min. Rotaciones, band pull-aparts" },
+          { nombre: "Press de banca (Barra) – carga alta", detalle: "4 x 4–5, Tempo: 2-0-1-0, Descanso: 2–3 min" },
+          { nombre: "Press militar (Barra) – carga alta", detalle: "4 x 4–5, Tempo: 2-0-1-0, Descanso: 2–3 min" },
+          { nombre: "Press inclinado con barra o mancuernas", detalle: "3 x 5–6, Tempo: 2-0-1-0, Descanso: 90 seg" },
+          { nombre: "Elevaciones laterales (puedes variar ángulo)", detalle: "3 x 10–12, Tempo: 2-0-1-0, Descanso: 60 seg" },
+          { nombre: "Fondos en paralelas (enfocados en tríceps)", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 60 seg" },
+          { nombre: "Core: Plancha frontal y lateral (alternar)", detalle: "3 x 30–45 seg, Descanso: 60 seg" }
         ],
-        day2: [
-          { name: 'Sentadilla trasera con barra', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Peso muerto rumano con barra', reps: '8-10', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Zancadas alternas con mancuernas', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Hip thrust con barra', reps: '12-15', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Plancha lateral', reps: '30-40 seg por lado', series: 3, tempo: 'N/A', rest: '30"', alternative: 'N/A' }
+        "Día 2: PULL": [
+          { nombre: "Calentamiento: Movilidad hombros y espalda", detalle: "5–10 min. Rotaciones, band pull-aparts" },
+          { nombre: "Dominadas (preferiblemente libres, variando agarres)", detalle: "4 x 5–6, Tempo: 2-0-1-0, Descanso: 2 min" },
+          { nombre: "T-Bar Row o Remo en máquina con barra en T", detalle: "4 x 5–6, Tempo: 2-0-1-0, Descanso: 2 min" },
+          { nombre: "Face Pulls (con mayor énfasis en la contracción)", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 90 seg" },
+          { nombre: "Curl de bíceps con barra EZ", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 60 seg" },
+          { nombre: "Remo invertido en TRX o con barra fija (en ángulo)", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 60 seg" }
         ],
-        day3: [
-          { name: 'Press militar con barra', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Remo unilateral con mancuerna', reps: '8-10', series: 4, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Dips lastrados', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Remo invertido', reps: '12-15', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Curl con barra', reps: '12-15', series: 3, tempo: '2-0-2-0', rest: '45"', alternative: 'N/A' }
+        "Día 3: LEGS": [
+          { nombre: "Calentamiento: Movilidad, foam rolling y activación", detalle: "5–10 min. Incluye puentes de glúteos" },
+          { nombre: "Front Squat o Hack Squat (según disponibilidad)", detalle: "4 x 4–6, Tempo: 3-0-1-0, Descanso: 2–3 min" },
+          { nombre: "Hip Thrust (Barra, con mayor carga)", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 90 seg" },
+          { nombre: "Peso muerto rumano (Barra o mancuerna, controlado)", detalle: "3 x 5–6, Tempo: 3-0-1-0, Descanso: 2 min" },
+          { nombre: "Zancadas reversas o walking lunges", detalle: "3 x 6–8 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
+          { nombre: "Estabilidad: Clamshells con banda o lateral band walks", detalle: "3 x 15 pasos por lado, Descanso: 60 seg" },
+          { nombre: "Elevación de gemelos (de pie o hack)", detalle: "3 x 12–15, Tempo: 2-0-1-0, Descanso: 60 seg" }
         ],
-        day4: [
-          { name: 'Sentadilla frontal con barra', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Peso muerto convencional', reps: '8-10', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Step-up con mancuernas', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Ab wheel rollout', reps: '12-15', series: 3, tempo: '2-0-2-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Pallof press', reps: '12-15 por lado', series: 3, tempo: 'N/A', rest: '45"', alternative: 'N/A' }
-        ]
-      },
-      month4: {
-        day1: [
-          { name: 'Press de banca con barra', reps: '4-6', series: 4, tempo: '3-1-1-0', rest: '2-3 min', alternative: 'N/A' },
-          { name: 'Dominadas (agarre prono)', reps: '4-6', series: 4, tempo: '3-1-1-0', rest: '2-3 min', alternative: 'N/A' },
-          { name: 'Press inclinado con mancuernas', reps: '8-10', series: 3, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Remo con barra', reps: '8-10', series: 3, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Face pulls', reps: '12-15', series: 3, tempo: '2-0-2-0', rest: '45"', alternative: 'N/A' }
-        ],
-        day2: [
-          { name: 'Sentadilla trasera con barra', reps: '5-6', series: 4, tempo: '3-1-1-0', rest: '2 min', alternative: 'N/A' },
-          { name: 'Peso muerto convencional', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '2 min', alternative: 'N/A' },
-          { name: 'Zancadas con mancuernas', reps: '8-10', series: 3, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Hip thrust', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Plancha lateral', reps: '30-40 seg por lado', series: 3, tempo: 'N/A', rest: '30"', alternative: 'N/A' }
-        ],
-        day3: [
-          { name: 'Press militar con barra', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Remo unilateral con mancuerna', reps: '8-10', series: 4, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Dips lastrados', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Remo invertido', reps: '12-15', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Curl con barra', reps: '12-15', series: 3, tempo: '2-0-2-0', rest: '45"', alternative: 'N/A' }
-        ],
-        day4: [
-          { name: 'Sentadilla frontal con barra', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Peso muerto convencional', reps: '8-10', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Step-up con mancuernas', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Ab wheel rollout', reps: '12-15', series: 3, tempo: '2-0-2-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Pallof press', reps: '12-15 por lado', series: 3, tempo: 'N/A', rest: '45"', alternative: 'N/A' }
-        ]
-      },
-      month5: {
-        day1: [
-          { name: 'Press de banca con barra', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Dominadas con agarre prono', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Press inclinado con mancuernas', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Remo con barra', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Face pulls', reps: '12-15', series: 3, tempo: '2-0-2-0', rest: '45"', alternative: 'N/A' }
-        ],
-        day2: [
-          { name: 'Sentadilla trasera con barra', reps: '5-6', series: 4, tempo: '3-1-1-0', rest: '2 min', alternative: 'N/A' },
-          { name: 'Peso muerto convencional', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '2 min', alternative: 'N/A' },
-          { name: 'Zancadas con mancuernas', reps: '8-10', series: 3, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Hip thrust', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Plancha lateral', reps: '30-40 seg por lado', series: 3, tempo: 'N/A', rest: '30"', alternative: 'N/A' }
-        ],
-        day3: [
-          { name: 'Press militar con barra', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Remo unilateral con mancuerna', reps: '8-10', series: 4, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Dips lastrados', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Remo invertido', reps: '12-15', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Curl con barra', reps: '12-15', series: 3, tempo: '2-0-2-0', rest: '45"', alternative: 'N/A' }
-        ],
-        day4: [
-          { name: 'Sentadilla frontal con barra', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Peso muerto convencional', reps: '8-10', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Step-up con mancuernas', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Ab wheel rollout', reps: '12-15', series: 3, tempo: '2-0-2-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Pallof press', reps: '12-15 por lado', series: 3, tempo: 'N/A', rest: '45"', alternative: 'N/A' }
-        ]
-      },
-      month6: {
-        day1: [
-          { name: 'Superserie: Press de banca con barra + Remo con barra', reps: '8-10', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Dominadas con agarre prono', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Press inclinado con mancuernas (drop set)', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Face pulls', reps: '12-15', series: 3, tempo: '2-0-2-0', rest: '45"', alternative: 'N/A' }
-        ],
-        day2: [
-          { name: 'Sentadilla trasera con barra', reps: '5-6', series: 4, tempo: '3-1-1-0', rest: '2 min', alternative: 'N/A' },
-          { name: 'Peso muerto convencional', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '2 min', alternative: 'N/A' },
-          { name: 'Zancadas con mancuernas', reps: '8-10', series: 3, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Hip thrust', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Plancha lateral', reps: '30-40 seg por lado', series: 3, tempo: 'N/A', rest: '30"', alternative: 'N/A' }
-        ],
-        day3: [
-          { name: 'Press militar con barra', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Remo unilateral con mancuerna', reps: '8-10', series: 4, tempo: '2-0-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Dips lastrados', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Remo invertido', reps: '12-15', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Curl con barra', reps: '12-15', series: 3, tempo: '2-0-2-0', rest: '45"', alternative: 'N/A' }
-        ],
-        day4: [
-          { name: 'Sentadilla frontal con barra', reps: '6-8', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Peso muerto convencional', reps: '8-10', series: 4, tempo: '3-1-1-0', rest: '90"', alternative: 'N/A' },
-          { name: 'Step-up con mancuernas', reps: '10-12', series: 3, tempo: '2-0-1-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Ab wheel rollout', reps: '12-15', series: 3, tempo: '2-0-2-0', rest: '60"', alternative: 'N/A' },
-          { name: 'Pallof press', reps: '12-15 por lado', series: 3, tempo: 'N/A', rest: '45"', alternative: 'N/A' }
+        "Día 4: TOTAL BODY": [
+          { nombre: "Calentamiento: Movilidad general y activación", detalle: "5–10 min" },
+          { nombre: "Dumbbell Push Press (con mancuernas) o Push Press (Barra)", detalle: "3 x 4–6, Tempo: 2-0-1-0, Descanso: 2–3 min" },
+          { nombre: "Kettlebell Swing o Alternativa: Hip Hinge con mancuerna", detalle: "3 x 8–10, Explosivo / 2-0-1-0, Descanso: 90 seg" },
+          { nombre: "Step-up con peso (sobre banco o plataforma)", detalle: "3 x 6–8 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
+          { nombre: "Pallof Press (con banda o polea, incrementa resistencia)", detalle: "3 x 8–10 (cada lado), Tempo: 2-0-2-0, Descanso: 60 seg" },
+          { nombre: "Opcional: Saltos pliométricos controlados", detalle: "2 x 4–6 (cada pierna), Descanso: 60 seg" }
         ]
       }
     };
 
-    // Almacenar los pesos registrados
-    const weightData = {};
+    // ------------------------------------------------------------
+    // 2. MOSTRAR RUTINA
+    // ------------------------------------------------------------
+    const mesTabs = document.querySelectorAll('.mesTab');
+    const rutinaContent = document.getElementById('rutinaContent');
 
-    // Configuración del gráfico de progreso de pesos
-    const weightProgressData = {
-      labels: [],
-      datasets: []
-    };
+    mesTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const mes = tab.getAttribute('data-mes'); // "Mes 1", "Mes 2", "Mes 3"
+        displayRoutine(mes);
+      });
+    });
 
-    const weightProgressConfig = {
-      type: 'line',
-      data: weightProgressData,
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'top',
-          },
-        },
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
-    };
+    function getDias(mes) {
+      return Object.keys(routine[mes] || {});
+    }
+    function getEjercicios(mes, dia) {
+      return routine[mes][dia] || [];
+    }
 
-    const weightCtx = document.getElementById('weightProgressChart').getContext('2d');
-    const weightProgressChart = new Chart(weightCtx, weightProgressConfig);
-
-    // Función para cargar las rutinas
-    const loadRoutine = () => {
-      const month = document.getElementById('monthSelector').value;
-      const day = document.getElementById('daySelector').value;
-      const routineContainer = document.getElementById('routineContainer');
-      routineContainer.innerHTML = '';
-
-      if (program[month] && program[month][day]) {
-        program[month][day].forEach((exercise, index) => {
-          // Mostrar rutina con campos de peso
-          const exerciseDiv = document.createElement('div');
-          exerciseDiv.className = 'bg-white p-4 rounded-lg shadow-md border-l-4 border-blue-500';
-          exerciseDiv.innerHTML = `
-            <h3 class="text-lg font-semibold">🏋️‍♀️ Ejercicio: ${exercise.name}</h3>
-            <p>🔢 Reps: ${exercise.reps} | 🔄 Series: ${exercise.series} | ⏱️ Tempo: ${exercise.tempo} | 🛑 Descanso: ${exercise.rest || 'N/A'}</p>
-            <p class="text-sm text-gray-600">✨ Alternativa: ${exercise.alternative || 'N/A'}</p>
-            <div class="mt-4">
-              ${Array.from({ length: exercise.series }).map((_, i) => `
-                <input type="number" placeholder="Peso Serie ${i + 1} (kg)" class="w-full p-2 border rounded-lg mb-2 shadow-sm" data-exercise="${exercise.name}" data-series="${i + 1}">
-              `).join('')}
+    function displayRoutine(mes) {
+      const dias = getDias(mes);
+      let html = `<h3 class="text-xl font-bold mb-2">Rutina ${mes}</h3>`;
+      dias.forEach(dia => {
+        html += `
+          <div class="border rounded bg-white mb-2">
+            <button class="w-full text-left px-4 py-2 font-semibold accordion-btn" onclick="toggleAccordion(this)">
+              ${dia}
+            </button>
+            <div class="px-4 py-2 hidden accordion-content">
+        `;
+        const ejercicios = getEjercicios(mes, dia);
+        ejercicios.forEach(e => {
+          html += `
+            <div class="mb-2">
+              <p class="font-semibold">${e.nombre}</p>
+              <p class="text-sm text-gray-600">${e.detalle}</p>
             </div>
           `;
-          routineContainer.appendChild(exerciseDiv);
         });
-      } else {
-        routineContainer.innerHTML = '<p class="text-gray-600">❌ No hay rutinas disponibles para este día.</p>';
+        html += `</div></div>`;
+      });
+      rutinaContent.innerHTML = html;
+    }
+
+    // Por defecto, mostrar "Mes 1"
+    displayRoutine("Mes 1");
+
+    function toggleAccordion(button) {
+      const content = button.nextElementSibling;
+      content.classList.toggle('hidden');
+    }
+
+    // ------------------------------------------------------------
+    // 3. NAVEGACIÓN (Rutina / Progreso)
+    // ------------------------------------------------------------
+    const btnRutina = document.getElementById('btnRutina');
+    const btnProgreso = document.getElementById('btnProgreso');
+    const rutinaSection = document.getElementById('rutinaSection');
+    const progresoSection = document.getElementById('progresoSection');
+
+    btnRutina.addEventListener('click', () => {
+      rutinaSection.classList.remove('hidden');
+      progresoSection.classList.add('hidden');
+    });
+    btnProgreso.addEventListener('click', () => {
+      progresoSection.classList.remove('hidden');
+      rutinaSection.classList.add('hidden');
+      populateProgressDay();
+    });
+
+    // ------------------------------------------------------------
+    // 4. FORMULARIO DE PROGRESO
+    // ------------------------------------------------------------
+    const progressMes = document.getElementById('progressMes');
+    const progressDia = document.getElementById('progressDia');
+    const progressEjercicio = document.getElementById('progressEjercicio');
+
+    progressMes.addEventListener('change', populateProgressDay);
+    progressDia.addEventListener('change', populateProgressEjercicio);
+
+    function populateProgressDay() {
+      progressDia.innerHTML = '<option value="">Seleccione Día</option>';
+      progressEjercicio.innerHTML = '<option value="">Seleccione Ejercicio</option>';
+      const mes = progressMes.value;
+      if (mes && routine[mes]) {
+        const dias = getDias(mes);
+        dias.forEach(d => {
+          const option = document.createElement('option');
+          option.value = d;
+          option.textContent = d;
+          progressDia.appendChild(option);
+        });
       }
-    };
+    }
 
-    // Guardar los pesos registrados
-    const saveWeights = () => {
-      const inputs = document.querySelectorAll('#routineContainer input');
-      inputs.forEach(input => {
-        const exercise = input.dataset.exercise;
-        const series = input.dataset.series;
-        const weight = input.value;
+    function populateProgressEjercicio() {
+      progressEjercicio.innerHTML = '<option value="">Seleccione Ejercicio</option>';
+      const mes = progressMes.value;
+      const dia = progressDia.value;
+      if (mes && dia) {
+        const ejercicios = getEjercicios(mes, dia);
+        ejercicios.forEach(e => {
+          const option = document.createElement('option');
+          option.value = e.nombre;
+          option.textContent = e.nombre;
+          progressEjercicio.appendChild(option);
+        });
+      }
+    }
 
-        if (!weightData[exercise]) {
-          weightData[exercise] = [];
+    // Manejo de series dinámicas
+    const seriesContainer = document.getElementById('seriesContainer');
+    const addSeriesBtn = document.getElementById('addSeriesBtn');
+
+    function addSeriesRow() {
+      const row = document.createElement('div');
+      row.className = 'flex space-x-2';
+      row.innerHTML = `
+        <input type="number" placeholder="Reps" class="w-1/2 p-2 border rounded" required>
+        <input type="number" placeholder="Peso (kg)" class="w-1/2 p-2 border rounded" required>
+        <button type="button" class="bg-red-500 text-white px-2 rounded"
+          onclick="this.parentElement.remove()" title="Eliminar serie">🗑
+        </button>
+      `;
+      seriesContainer.appendChild(row);
+    }
+
+    addSeriesBtn.addEventListener('click', addSeriesRow);
+    // Agregar una fila por defecto
+    addSeriesRow();
+
+    const progressForm = document.getElementById('progressForm');
+    progressForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const date = document.getElementById('progressDate').value;
+      const mes = progressMes.value;
+      const dia = progressDia.value;
+      const ejercicio = progressEjercicio.value;
+
+      if (!date || !mes || !dia || !ejercicio) {
+        alert("Completa Fecha, Mes, Día y Ejercicio antes de guardar.");
+        return;
+      }
+
+      const rows = seriesContainer.querySelectorAll('div.flex');
+      const series = [];
+      rows.forEach((row, i) => {
+        const inputs = row.querySelectorAll('input');
+        const reps = inputs[0].value;
+        const peso = inputs[1].value;
+        if (reps && peso) {
+          series.push({ serie: i + 1, reps, peso });
         }
-
-        weightData[exercise][series - 1] = weight;
       });
-
-      updateWeightProgressChart();
-      alert('✅ Pesos guardados correctamente');
-    };
-
-    // Actualizar el gráfico de progreso de pesos
-    const updateWeightProgressChart = () => {
-      weightProgressData.labels = Object.keys(weightData);
-      weightProgressData.datasets = Object.keys(weightData).map(exercise => {
-        return {
-          label: exercise,
-          data: weightData[exercise].map(weight => parseFloat(weight) || 0),
-          borderColor: getRandomColor(),
-          backgroundColor: 'rgba(0, 0, 0, 0)',
-          borderWidth: 2
-        };
-      });
-
-      weightProgressChart.update();
-    };
-
-    // Generar un color aleatorio
-    const getRandomColor = () => {
-      const letters = '0123456789ABCDEF';
-      let color = '#';
-      for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
+      if (series.length === 0) {
+        alert("Agrega al menos una serie válida.");
+        return;
       }
-      return color;
-    };
 
-    // Eventos para cargar las rutinas al cambiar mes o día
-    document.getElementById('monthSelector').addEventListener('change', loadRoutine);
-    document.getElementById('daySelector').addEventListener('change', loadRoutine);
+      const newProgress = {
+        id: Date.now(),
+        date,
+        mes,
+        dia,
+        ejercicio,
+        series
+      };
+      saveProgress(newProgress);
 
-    // Cargar la rutina inicial
-    window.onload = loadRoutine;
+      progressForm.reset();
+      seriesContainer.innerHTML = '';
+      addSeriesRow();
+      loadProgressList();
+      updateChart();
+    });
+
+    function saveProgress(data) {
+      let progresses = JSON.parse(localStorage.getItem('gymProgress')) || [];
+      progresses.push(data);
+      localStorage.setItem('gymProgress', JSON.stringify(progresses));
+    }
+
+    function loadProgressList() {
+      const progressList = document.getElementById('progressList');
+      const progresses = JSON.parse(localStorage.getItem('gymProgress')) || [];
+      if (progresses.length === 0) {
+        progressList.innerHTML = "<p class='text-gray-500'>No hay entradas registradas aún.</p>";
+        return;
+      }
+      progresses.sort((a, b) => new Date(b.date) - new Date(a.date)); // descendente
+      let html = '';
+      for (const p of progresses) {
+        html += `
+          <div class="border-b py-2">
+            <p class="font-bold">${p.date} - ${p.mes} - ${p.dia}</p>
+            <p class="font-semibold">${p.ejercicio}</p>
+            <ul class="list-disc ml-6 text-sm">
+        `;
+        for (const s of p.series) {
+          html += `<li>Serie ${s.serie}: ${s.reps} reps, ${s.peso} kg</li>`;
+        }
+        html += `</ul></div>`;
+      }
+      progressList.innerHTML = html;
+    }
+
+    loadProgressList();
+
+    // ------------------------------------------------------------
+    // 5. GRÁFICA (Chart.js)
+    // ------------------------------------------------------------
+    let chart;
+    const ctx = document.getElementById('progressChart').getContext('2d');
+
+    const chartMesSelect = document.getElementById('chartMes');
+    const chartDiaSelect = document.getElementById('chartDia');
+    const chartEjercicioSelect = document.getElementById('chartEjercicio');
+    const chartSerieSelect = document.getElementById('chartSerie');
+    const updateChartBtn = document.getElementById('updateChartBtn');
+
+    chartMesSelect.addEventListener('change', () => {
+      chartDiaSelect.innerHTML = '<option value="">Seleccione Día</option>';
+      chartEjercicioSelect.innerHTML = '<option value="">Seleccione Ejercicio</option>';
+      const mes = chartMesSelect.value;
+      if (mes && routine[mes]) {
+        const dias = getDias(mes);
+        dias.forEach(d => {
+          const option = document.createElement('option');
+          option.value = d;
+          option.textContent = d;
+          chartDiaSelect.appendChild(option);
+        });
+      }
+    });
+
+    chartDiaSelect.addEventListener('change', () => {
+      chartEjercicioSelect.innerHTML = '<option value="">Seleccione Ejercicio</option>';
+      const mes = chartMesSelect.value;
+      const dia = chartDiaSelect.value;
+      if (mes && dia) {
+        const ejercicios = getEjercicios(mes, dia);
+        ejercicios.forEach(e => {
+          const option = document.createElement('option');
+          option.value = e.nombre;
+          option.textContent = e.nombre;
+          chartEjercicioSelect.appendChild(option);
+        });
+      }
+    });
+
+    updateChartBtn.addEventListener('click', updateChart);
+
+    function updateChart() {
+      const selMes = chartMesSelect.value;
+      const selDia = chartDiaSelect.value;
+      const selEjercicio = chartEjercicioSelect.value;
+      const selSerie = chartSerieSelect.value;
+
+      let progresses = JSON.parse(localStorage.getItem('gymProgress')) || [];
+
+      // Filtrar
+      if (selMes) progresses = progresses.filter(p => p.mes === selMes);
+      if (selDia) progresses = progresses.filter(p => p.dia === selDia);
+      if (selEjercicio) progresses = progresses.filter(p => p.ejercicio === selEjercicio);
+
+      // Ordenar por fecha asc
+      progresses.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      if (!selSerie) {
+        alert("Por favor selecciona una serie (1, 2, 3, 4 o 5) para graficar.");
+        return;
+      }
+
+      const labels = [];
+      const dataPoints = [];
+
+      for (const p of progresses) {
+        const found = p.series.find(s => s.serie.toString() === selSerie);
+        if (found) {
+          labels.push(p.date);
+          dataPoints.push(parseFloat(found.peso));
+        }
+      }
+
+      if (chart) chart.destroy();
+
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Peso (kg)',
+            data: dataPoints,
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.1,
+            pointRadius: 5,
+            pointHoverRadius: 7
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              title: { display: true, text: 'Fecha' }
+            },
+            y: {
+              title: { display: true, text: 'Peso (kg)' },
+              suggestedMin: 0
+            }
+          },
+          plugins: {
+            legend: { display: true }
+          }
+        }
+      });
+    }
   </script>
 </body>
 </html>
