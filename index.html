@@ -10,6 +10,8 @@
 
   <!-- Chart.js desde CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Plugin para mostrar etiquetas de datos en Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
   <!-- Estilos extra para hero, transiciones y acordeones -->
   <style>
@@ -70,6 +72,9 @@
     </button>
     <button id="btnProgreso" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
       Progreso
+    </button>
+    <button id="btnEditarRutina" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+      Editar Rutinas
     </button>
   </header>
 
@@ -149,6 +154,9 @@
       <!-- Historial -->
       <div class="bg-white shadow-soft rounded p-4 mb-6">
         <h2 class="text-xl font-bold mb-2">Historial de Progreso 📚</h2>
+        <button id="exportProgressBtn" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 mb-4">
+          Exportar Historial
+        </button>
         <div id="progressList" class="space-y-2">
           <!-- Se inyectan registros -->
         </div>
@@ -189,6 +197,47 @@
         <canvas id="progressChart" class="w-full h-64"></canvas>
       </div>
     </section>
+
+    <!-- Sección Editar Rutinas -->
+    <section id="editarRutinaSection" class="hidden p-4 max-w-5xl mx-auto w-full">
+      <div class="bg-white shadow-soft rounded p-4">
+        <h2 class="text-xl font-bold mb-2">Editar Rutinas</h2>
+        <p class="text-gray-600 mb-4">Agrega o elimina ejercicios de tu rutina sin editar código.</p>
+        
+        <div class="mb-4">
+          <label class="block mb-1 font-semibold">Mes:</label>
+          <select id="editMesSelect" class="w-full p-2 border rounded"></select>
+        </div>
+        <div class="mb-4">
+          <label class="block mb-1 font-semibold">Día:</label>
+          <select id="editDiaSelect" class="w-full p-2 border rounded"></select>
+        </div>
+        <div class="mb-4">
+          <label class="block mb-1 font-semibold">Ejercicio:</label>
+          <input type="text" id="editExerciseName" class="w-full p-2 border rounded" placeholder="Nombre del ejercicio">
+        </div>
+        <div class="mb-4">
+          <label class="block mb-1 font-semibold">Detalle:</label>
+          <input type="text" id="editExerciseDetail" class="w-full p-2 border rounded" placeholder="Detalle del ejercicio">
+        </div>
+        <button id="addExerciseBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 mb-4">
+          Agregar Ejercicio
+        </button>
+
+        <div id="editRoutineList" class="mb-4">
+          <!-- Se listarán los ejercicios del día seleccionado -->
+        </div>
+
+        <div class="flex justify-end">
+          <button id="cancelEditRutina" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 mr-2">
+            Cancelar
+          </button>
+          <button id="saveRoutineBtn" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+            Guardar Cambios
+          </button>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer class="bg-white p-4 text-center text-gray-500">
@@ -197,133 +246,147 @@
 
   <!-- JavaScript principal -->
   <script>
-    // ------------------------------------------------------------
-    // 1. OBJETO RUTINA (Mes 1, Mes 2, Mes 3 con 4 días c/u)
-    // ------------------------------------------------------------
-    const routine = {
-      "Mes 1": {
-        "Día 1: PUSH": [
-          { nombre: "Calentamiento: Movilidad de hombros y pectorales", detalle: "5–10 min. Rotaciones, band pull-aparts, estiramientos dinámicos" },
-          { nombre: "Press de banca (Barra)", detalle: "4 x 5, Tempo: 2-0-1-0, Descanso: 2–3 min. Alternativa: Press con mancuernas" },
-          { nombre: "Press militar (Barra)", detalle: "4 x 5, Tempo: 2-0-1-0, Descanso: 2–3 min. Alternativa: Press Arnold con mancuernas" },
-          { nombre: "Press inclinado (Barra o mancuernas)", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 90 seg. Alternativa: Flexiones inclinadas" },
-          { nombre: "Elevaciones laterales (estilo Poliquin)", detalle: "3 x 12–14, Tempo: 2-0-1-0, Descanso: 60 seg" },
-          { nombre: "Extensión de tríceps (barra EZ o mancuerna)", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 60 seg. Alternativa: Fondos asistidos" },
-          { nombre: "Core: Plancha", detalle: "3 x 30–45 seg, Descanso: 60 seg" }
-        ],
-        "Día 2: PULL": [
-          { nombre: "Calentamiento: Movilidad de hombros y espalda", detalle: "5–10 min. Rotaciones, band pull-aparts" },
-          { nombre: "Dominadas (asistidas o libres)", detalle: "4 x 6–8, Tempo: 2-0-1-0, Descanso: 2 min. Alternativa: Jalón en polea" },
-          { nombre: "Remo con barra (Barbell Row)", detalle: "4 x 5–8, Tempo: 2-0-1-0, Descanso: 2 min" },
-          { nombre: "Face Pulls con banda", detalle: "3 x 10–12, Tempo: 2-0-1-0, Descanso: 90 seg" },
-          { nombre: "Curl de bíceps con barra EZ", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 60 seg" },
-          { nombre: "Reverse Flys con mancuernas", detalle: "3 x 10–12, Tempo: 2-0-1-0, Descanso: 60 seg" }
-        ],
-        "Día 3: LEGS": [
-          { nombre: "Calentamiento: Movilidad, foam rolling y activación", detalle: "5–10 min. Incluye puentes de glúteos" },
-          { nombre: "Sentadilla con caja (Box Squat)", detalle: "4 x 5–8, Tempo: 3-0-1-0, Descanso: 2–3 min" },
-          { nombre: "Hip Thrust", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 90 seg" },
-          { nombre: "Peso muerto rumano", detalle: "3 x 6–8, Tempo: 3-0-1-0, Descanso: 2 min" },
-          { nombre: "Bulgarian Split Squat", detalle: "3 x 8 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
-          { nombre: "Estabilidad: Band Walks o Clamshells", detalle: "3 x 15 pasos por lado, Descanso: 60 seg" },
-          { nombre: "Elevación de gemelos", detalle: "3 x 12–15, Tempo: 2-0-1-0, Descanso: 60 seg" }
-        ],
-        "Día 4: TOTAL BODY": [
-          { nombre: "Calentamiento: Movilidad general y activación", detalle: "5–10 min" },
-          { nombre: "Landmine Squat to Press", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 2–3 min" },
-          { nombre: "Kettlebell Swing", detalle: "3 x 10, Ejecución explosiva, Descanso: 90 seg" },
-          { nombre: "Single-Leg Romanian Deadlift", detalle: "3 x 8 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
-          { nombre: "Pallof Press", detalle: "3 x 10 (cada lado), Tempo: 2-0-2-0, Descanso: 60 seg" },
-          { nombre: "Opcional: Box Step Jump", detalle: "2 x 5 (cada pierna), Descanso: 60 seg" }
-        ]
-      },
-      "Mes 2": {
-        "Día 1: PUSH": [
-          { nombre: "Calentamiento: Movilidad hombros y pectorales", detalle: "5–10 min. Rotaciones, band pull-aparts" },
-          { nombre: "Press de banca con mancuernas", detalle: "4 x 5–6, Tempo: 2-0-1-0, Descanso: 2–3 min" },
-          { nombre: "Press militar (Barra o mancuernas)", detalle: "4 x 5–6, Tempo: 2-0-1-0, Descanso: 2–3 min" },
-          { nombre: "Press inclinado con mancuernas", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 90 seg" },
-          { nombre: "Elevaciones laterales (con mancuernas)", detalle: "3 x 12–14, Tempo: 2-0-1-0, Descanso: 60 seg" },
-          { nombre: "Extensión de tríceps en banco (con mancuerna)", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 60 seg" },
-          { nombre: "Core: Plancha lateral", detalle: "3 x 30–45 seg, Descanso: 60 seg" }
-        ],
-        "Día 2: PULL": [
-          { nombre: "Calentamiento: Movilidad de hombros y espalda", detalle: "5–10 min. Rotaciones, band pull-aparts" },
-          { nombre: "Dominadas (variación agarre supino o mixto)", detalle: "4 x 6–8, Tempo: 2-0-1-0, Descanso: 2 min" },
-          { nombre: "Remo con mancuerna a un brazo (apoyado en banco)", detalle: "4 x 6–8, Tempo: 2-0-1-0, Descanso: 2 min" },
-          { nombre: "Cable Row con agarre amplio (si es posible)", detalle: "3 x 10–12, Tempo: 2-0-1-0, Descanso: 90 seg" },
-          { nombre: "Curl de bíceps alterno con mancuernas", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 60 seg" },
-          { nombre: "Face Pulls con banda (variando el ángulo)", detalle: "3 x 10–12, Tempo: 2-0-1-0, Descanso: 60 seg" }
-        ],
-        "Día 3: LEGS": [
-          { nombre: "Calentamiento: Movilidad, foam rolling y activación", detalle: "5–10 min. Incluye puentes de glúteos" },
-          { nombre: "Front Squat o Sentadilla frontal", detalle: "4 x 5–8, Tempo: 3-0-1-0, Descanso: 2–3 min" },
-          { nombre: "Hip Thrust (Barra o mancuerna)", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 90 seg" },
-          { nombre: "Peso muerto rumano (Barra o mancuerna)", detalle: "3 x 6–8, Tempo: 3-0-1-0, Descanso: 2 min" },
-          { nombre: "Zancadas caminando", detalle: "3 x 8–10 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
-          { nombre: "Estabilidad: Clamshells con banda", detalle: "3 x 15 pasos por lado, Descanso: 60 seg" },
-          { nombre: "Elevación de gemelos (de pie o en prensa)", detalle: "3 x 12–15, Tempo: 2-0-1-0, Descanso: 60 seg" }
-        ],
-        "Día 4: TOTAL BODY": [
-          { nombre: "Calentamiento: Movilidad general y activación", detalle: "5–10 min" },
-          { nombre: "Dumbbell Thruster (con mancuernas)", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 2–3 min" },
-          { nombre: "Kettlebell Swing (variando rango de movimiento)", detalle: "3 x 10, Explosivo / 2-0-1-0, Descanso: 90 seg" },
-          { nombre: "Single-Leg Glute Bridge con mancuerna", detalle: "3 x 8 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
-          { nombre: "Pallof Press (con banda o polea)", detalle: "3 x 10 (cada lado), Tempo: 2-0-2-0, Descanso: 60 seg" },
-          { nombre: "Opcional: Step-ups dinámicos", detalle: "2 x 6–8 (cada pierna), Descanso: 60 seg" }
-        ]
-      },
-      "Mes 3": {
-        "Día 1: PUSH": [
-          { nombre: "Calentamiento: Movilidad hombros y pectorales", detalle: "5–10 min. Rotaciones, band pull-aparts" },
-          { nombre: "Press de banca (Barra) – carga alta", detalle: "4 x 4–5, Tempo: 2-0-1-0, Descanso: 2–3 min" },
-          { nombre: "Press militar (Barra) – carga alta", detalle: "4 x 4–5, Tempo: 2-0-1-0, Descanso: 2–3 min" },
-          { nombre: "Press inclinado con barra o mancuernas", detalle: "3 x 5–6, Tempo: 2-0-1-0, Descanso: 90 seg" },
-          { nombre: "Elevaciones laterales (puedes variar ángulo)", detalle: "3 x 10–12, Tempo: 2-0-1-0, Descanso: 60 seg" },
-          { nombre: "Fondos en paralelas (enfocados en tríceps)", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 60 seg" },
-          { nombre: "Core: Plancha frontal y lateral (alternar)", detalle: "3 x 30–45 seg, Descanso: 60 seg" }
-        ],
-        "Día 2: PULL": [
-          { nombre: "Calentamiento: Movilidad hombros y espalda", detalle: "5–10 min. Rotaciones, band pull-aparts" },
-          { nombre: "Dominadas (preferiblemente libres, variando agarres)", detalle: "4 x 5–6, Tempo: 2-0-1-0, Descanso: 2 min" },
-          { nombre: "T-Bar Row o Remo en máquina con barra en T", detalle: "4 x 5–6, Tempo: 2-0-1-0, Descanso: 2 min" },
-          { nombre: "Face Pulls (con mayor énfasis en la contracción)", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 90 seg" },
-          { nombre: "Curl de bíceps con barra EZ", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 60 seg" },
-          { nombre: "Remo invertido en TRX o con barra fija (en ángulo)", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 60 seg" }
-        ],
-        "Día 3: LEGS": [
-          { nombre: "Calentamiento: Movilidad, foam rolling y activación", detalle: "5–10 min. Incluye puentes de glúteos" },
-          { nombre: "Front Squat o Hack Squat (según disponibilidad)", detalle: "4 x 4–6, Tempo: 3-0-1-0, Descanso: 2–3 min" },
-          { nombre: "Hip Thrust (Barra, con mayor carga)", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 90 seg" },
-          { nombre: "Peso muerto rumano (Barra o mancuerna, controlado)", detalle: "3 x 5–6, Tempo: 3-0-1-0, Descanso: 2 min" },
-          { nombre: "Zancadas reversas o walking lunges", detalle: "3 x 6–8 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
-          { nombre: "Estabilidad: Clamshells con banda o lateral band walks", detalle: "3 x 15 pasos por lado, Descanso: 60 seg" },
-          { nombre: "Elevación de gemelos (de pie o hack)", detalle: "3 x 12–15, Tempo: 2-0-1-0, Descanso: 60 seg" }
-        ],
-        "Día 4: TOTAL BODY": [
-          { nombre: "Calentamiento: Movilidad general y activación", detalle: "5–10 min" },
-          { nombre: "Dumbbell Push Press (con mancuernas) o Push Press (Barra)", detalle: "3 x 4–6, Tempo: 2-0-1-0, Descanso: 2–3 min" },
-          { nombre: "Kettlebell Swing o Alternativa: Hip Hinge con mancuerna", detalle: "3 x 8–10, Explosivo / 2-0-1-0, Descanso: 90 seg" },
-          { nombre: "Step-up con peso (sobre banco o plataforma)", detalle: "3 x 6–8 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
-          { nombre: "Pallof Press (con banda o polea, incrementa resistencia)", detalle: "3 x 8–10 (cada lado), Tempo: 2-0-2-0, Descanso: 60 seg" },
-          { nombre: "Opcional: Saltos pliométricos controlados", detalle: "2 x 4–6 (cada pierna), Descanso: 60 seg" }
-        ]
-      }
-    };
+    // Registra el plugin de etiquetas de datos para Chart.js
+    Chart.register(ChartDataLabels);
 
-    // ------------------------------------------------------------
-    // 2. MOSTRAR RUTINA
-    // ------------------------------------------------------------
+    // =============================================================
+    // 1. Gestión de Rutinas Editable (Carga y Guardado en localStorage)
+    // =============================================================
+    let routine = loadRoutine();
+    function loadRoutine() {
+      const stored = localStorage.getItem('gymRoutine');
+      if(stored) {
+        return JSON.parse(stored);
+      } else {
+        const defaultRoutine = {
+          "Mes 1": {
+            "Día 1: PUSH": [
+              { nombre: "Calentamiento: Movilidad de hombros y pectorales", detalle: "5–10 min. Rotaciones, band pull-aparts, estiramientos dinámicos" },
+              { nombre: "Press de banca (Barra)", detalle: "4 x 5, Tempo: 2-0-1-0, Descanso: 2–3 min. Alternativa: Press con mancuernas" },
+              { nombre: "Press militar (Barra)", detalle: "4 x 5, Tempo: 2-0-1-0, Descanso: 2–3 min. Alternativa: Press Arnold con mancuernas" },
+              { nombre: "Press inclinado (Barra o mancuernas)", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 90 seg. Alternativa: Flexiones inclinadas" },
+              { nombre: "Elevaciones laterales (estilo Poliquin)", detalle: "3 x 12–14, Tempo: 2-0-1-0, Descanso: 60 seg" },
+              { nombre: "Extensión de tríceps (barra EZ o mancuerna)", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 60 seg. Alternativa: Fondos asistidos" },
+              { nombre: "Core: Plancha", detalle: "3 x 30–45 seg, Descanso: 60 seg" }
+            ],
+            "Día 2: PULL": [
+              { nombre: "Calentamiento: Movilidad de hombros y espalda", detalle: "5–10 min. Rotaciones, band pull-aparts" },
+              { nombre: "Dominadas (asistidas o libres)", detalle: "4 x 6–8, Tempo: 2-0-1-0, Descanso: 2 min. Alternativa: Jalón en polea" },
+              { nombre: "Remo con barra (Barbell Row)", detalle: "4 x 5–8, Tempo: 2-0-1-0, Descanso: 2 min" },
+              { nombre: "Face Pulls con banda", detalle: "3 x 10–12, Tempo: 2-0-1-0, Descanso: 90 seg" },
+              { nombre: "Curl de bíceps con barra EZ", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 60 seg" },
+              { nombre: "Reverse Flys con mancuernas", detalle: "3 x 10–12, Tempo: 2-0-1-0, Descanso: 60 seg" }
+            ],
+            "Día 3: LEGS": [
+              { nombre: "Calentamiento: Movilidad, foam rolling y activación", detalle: "5–10 min. Incluye puentes de glúteos" },
+              { nombre: "Sentadilla con caja (Box Squat)", detalle: "4 x 5–8, Tempo: 3-0-1-0, Descanso: 2–3 min" },
+              { nombre: "Hip Thrust", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 90 seg" },
+              { nombre: "Peso muerto rumano", detalle: "3 x 6–8, Tempo: 3-0-1-0, Descanso: 2 min" },
+              { nombre: "Bulgarian Split Squat", detalle: "3 x 8 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
+              { nombre: "Estabilidad: Band Walks o Clamshells", detalle: "3 x 15 pasos por lado, Descanso: 60 seg" },
+              { nombre: "Elevación de gemelos", detalle: "3 x 12–15, Tempo: 2-0-1-0, Descanso: 60 seg" }
+            ],
+            "Día 4: TOTAL BODY": [
+              { nombre: "Calentamiento: Movilidad general y activación", detalle: "5–10 min" },
+              { nombre: "Landmine Squat to Press", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 2–3 min" },
+              { nombre: "Kettlebell Swing", detalle: "3 x 10, Ejecución explosiva, Descanso: 90 seg" },
+              { nombre: "Single-Leg Romanian Deadlift", detalle: "3 x 8 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
+              { nombre: "Pallof Press", detalle: "3 x 10 (cada lado), Tempo: 2-0-2-0, Descanso: 60 seg" },
+              { nombre: "Opcional: Box Step Jump", detalle: "2 x 5 (cada pierna), Descanso: 60 seg" }
+            ]
+          },
+          "Mes 2": {
+            "Día 1: PUSH": [
+              { nombre: "Calentamiento: Movilidad hombros y pectorales", detalle: "5–10 min. Rotaciones, band pull-aparts" },
+              { nombre: "Press de banca con mancuernas", detalle: "4 x 5–6, Tempo: 2-0-1-0, Descanso: 2–3 min" },
+              { nombre: "Press militar (Barra o mancuernas)", detalle: "4 x 5–6, Tempo: 2-0-1-0, Descanso: 2–3 min" },
+              { nombre: "Press inclinado con mancuernas", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 90 seg" },
+              { nombre: "Elevaciones laterales (con mancuernas)", detalle: "3 x 12–14, Tempo: 2-0-1-0, Descanso: 60 seg" },
+              { nombre: "Extensión de tríceps en banco (con mancuerna)", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 60 seg" },
+              { nombre: "Core: Plancha lateral", detalle: "3 x 30–45 seg, Descanso: 60 seg" }
+            ],
+            "Día 2: PULL": [
+              { nombre: "Calentamiento: Movilidad de hombros y espalda", detalle: "5–10 min. Rotaciones, band pull-aparts" },
+              { nombre: "Dominadas (variación agarre supino o mixto)", detalle: "4 x 6–8, Tempo: 2-0-1-0, Descanso: 2 min" },
+              { nombre: "Remo con mancuerna a un brazo (apoyado en banco)", detalle: "4 x 6–8, Tempo: 2-0-1-0, Descanso: 2 min" },
+              { nombre: "Cable Row con agarre amplio (si es posible)", detalle: "3 x 10–12, Tempo: 2-0-1-0, Descanso: 90 seg" },
+              { nombre: "Curl de bíceps alterno con mancuernas", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 60 seg" },
+              { nombre: "Face Pulls con banda (variando el ángulo)", detalle: "3 x 10–12, Tempo: 2-0-1-0, Descanso: 60 seg" }
+            ],
+            "Día 3: LEGS": [
+              { nombre: "Calentamiento: Movilidad, foam rolling y activación", detalle: "5–10 min. Incluye puentes de glúteos" },
+              { nombre: "Front Squat o Sentadilla frontal", detalle: "4 x 5–8, Tempo: 3-0-1-0, Descanso: 2–3 min" },
+              { nombre: "Hip Thrust (Barra o mancuerna)", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 90 seg" },
+              { nombre: "Peso muerto rumano (Barra o mancuerna)", detalle: "3 x 6–8, Tempo: 3-0-1-0, Descanso: 2 min" },
+              { nombre: "Zancadas caminando", detalle: "3 x 8–10 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
+              { nombre: "Estabilidad: Clamshells con banda", detalle: "3 x 15 pasos por lado, Descanso: 60 seg" },
+              { nombre: "Elevación de gemelos (de pie o en prensa)", detalle: "3 x 12–15, Tempo: 2-0-1-0, Descanso: 60 seg" }
+            ],
+            "Día 4: TOTAL BODY": [
+              { nombre: "Calentamiento: Movilidad general y activación", detalle: "5–10 min" },
+              { nombre: "Dumbbell Thruster (con mancuernas)", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 2–3 min" },
+              { nombre: "Kettlebell Swing (variando rango de movimiento)", detalle: "3 x 10, Explosivo / 2-0-1-0, Descanso: 90 seg" },
+              { nombre: "Single-Leg Glute Bridge con mancuerna", detalle: "3 x 8 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
+              { nombre: "Pallof Press (con banda o polea)", detalle: "3 x 10 (cada lado), Tempo: 2-0-2-0, Descanso: 60 seg" },
+              { nombre: "Opcional: Step-ups dinámicos", detalle: "2 x 6–8 (cada pierna), Descanso: 60 seg" }
+            ]
+          },
+          "Mes 3": {
+            "Día 1: PUSH": [
+              { nombre: "Calentamiento: Movilidad hombros y pectorales", detalle: "5–10 min. Rotaciones, band pull-aparts" },
+              { nombre: "Press de banca (Barra) – carga alta", detalle: "4 x 4–5, Tempo: 2-0-1-0, Descanso: 2–3 min" },
+              { nombre: "Press militar (Barra) – carga alta", detalle: "4 x 4–5, Tempo: 2-0-1-0, Descanso: 2–3 min" },
+              { nombre: "Press inclinado con barra o mancuernas", detalle: "3 x 5–6, Tempo: 2-0-1-0, Descanso: 90 seg" },
+              { nombre: "Elevaciones laterales (puedes variar ángulo)", detalle: "3 x 10–12, Tempo: 2-0-1-0, Descanso: 60 seg" },
+              { nombre: "Fondos en paralelas (enfocados en tríceps)", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 60 seg" },
+              { nombre: "Core: Plancha frontal y lateral (alternar)", detalle: "3 x 30–45 seg, Descanso: 60 seg" }
+            ],
+            "Día 2: PULL": [
+              { nombre: "Calentamiento: Movilidad hombros y espalda", detalle: "5–10 min. Rotaciones, band pull-aparts" },
+              { nombre: "Dominadas (preferiblemente libres, variando agarres)", detalle: "4 x 5–6, Tempo: 2-0-1-0, Descanso: 2 min" },
+              { nombre: "T-Bar Row o Remo en máquina con barra en T", detalle: "4 x 5–6, Tempo: 2-0-1-0, Descanso: 2 min" },
+              { nombre: "Face Pulls (con mayor énfasis en la contracción)", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 90 seg" },
+              { nombre: "Curl de bíceps con barra EZ", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 60 seg" },
+              { nombre: "Remo invertido en TRX o con barra fija (en ángulo)", detalle: "3 x 8–10, Tempo: 2-0-1-0, Descanso: 60 seg" }
+            ],
+            "Día 3: LEGS": [
+              { nombre: "Calentamiento: Movilidad, foam rolling y activación", detalle: "5–10 min. Incluye puentes de glúteos" },
+              { nombre: "Front Squat o Hack Squat (según disponibilidad)", detalle: "4 x 4–6, Tempo: 3-0-1-0, Descanso: 2–3 min" },
+              { nombre: "Hip Thrust (Barra, con mayor carga)", detalle: "3 x 6–8, Tempo: 2-0-1-0, Descanso: 90 seg" },
+              { nombre: "Peso muerto rumano (Barra o mancuerna, controlado)", detalle: "3 x 5–6, Tempo: 3-0-1-0, Descanso: 2 min" },
+              { nombre: "Zancadas reversas o walking lunges", detalle: "3 x 6–8 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
+              { nombre: "Estabilidad: Clamshells con banda o lateral band walks", detalle: "3 x 15 pasos por lado, Descanso: 60 seg" },
+              { nombre: "Elevación de gemelos (de pie o hack)", detalle: "3 x 12–15, Tempo: 2-0-1-0, Descanso: 60 seg" }
+            ],
+            "Día 4: TOTAL BODY": [
+              { nombre: "Calentamiento: Movilidad general y activación", detalle: "5–10 min" },
+              { nombre: "Dumbbell Push Press (con mancuernas) o Push Press (Barra)", detalle: "3 x 4–6, Tempo: 2-0-1-0, Descanso: 2–3 min" },
+              { nombre: "Kettlebell Swing o Alternativa: Hip Hinge con mancuerna", detalle: "3 x 8–10, Explosivo / 2-0-1-0, Descanso: 90 seg" },
+              { nombre: "Step-up con peso (sobre banco o plataforma)", detalle: "3 x 6–8 (cada pierna), Tempo: 2-0-1-0, Descanso: 90 seg" },
+              { nombre: "Pallof Press (con banda o polea, incrementa resistencia)", detalle: "3 x 8–10 (cada lado), Tempo: 2-0-2-0, Descanso: 60 seg" },
+              { nombre: "Opcional: Saltos pliométricos controlados", detalle: "2 x 4–6 (cada pierna), Descanso: 60 seg" }
+            ]
+          }
+        };
+        localStorage.setItem('gymRoutine', JSON.stringify(defaultRoutine));
+        return defaultRoutine;
+      }
+    }
+    function saveRoutine() {
+      localStorage.setItem('gymRoutine', JSON.stringify(routine));
+    }
+
+    // =============================================================
+    // 2. MOSTRAR RUTINA (programación)
+    // =============================================================
     const mesTabs = document.querySelectorAll('.mesTab');
     const rutinaContent = document.getElementById('rutinaContent');
-
     mesTabs.forEach(tab => {
       tab.addEventListener('click', () => {
         const mes = tab.getAttribute('data-mes');
         displayRutina(mes);
       });
     });
-
     function displayRutina(mes) {
       const dias = Object.keys(routine[mes] || {});
       let html = `<h3 class="text-xl font-bold mb-2 text-center">Rutina ${mes}</h3>`;
@@ -352,7 +415,6 @@
       });
       rutinaContent.innerHTML = html;
     }
-
     function toggleDay(mes, dia, btn) {
       const icon = btn.querySelector('span.text-xl');
       const contentId = `content-${mes}-${dia.replace(/[^a-zA-Z0-9]/g,'')}`;
@@ -365,44 +427,138 @@
         icon.textContent = '➖';
       }
     }
+    displayRutina("Mes 1");
 
-    displayRutina("Mes 1"); // Muestra Mes 1 por defecto
-
-    // ------------------------------------------------------------
-    // 3. NAVEGACIÓN (Rutina / Progreso)
-    // ------------------------------------------------------------
+    // =============================================================
+    // 3. NAVEGACIÓN: Rutina / Progreso / Editar Rutinas
+    // =============================================================
     const btnRutina = document.getElementById('btnRutina');
     const btnProgreso = document.getElementById('btnProgreso');
+    const btnEditarRutina = document.getElementById('btnEditarRutina');
     const rutinaSection = document.getElementById('rutinaSection');
     const progresoSection = document.getElementById('progresoSection');
-
+    const editarRutinaSection = document.getElementById('editarRutinaSection');
     btnRutina.addEventListener('click', () => {
       rutinaSection.classList.remove('hidden');
       progresoSection.classList.add('hidden');
+      editarRutinaSection.classList.add('hidden');
     });
     btnProgreso.addEventListener('click', () => {
       rutinaSection.classList.add('hidden');
       progresoSection.classList.remove('hidden');
+      editarRutinaSection.classList.add('hidden');
       populateProgressDay();
     });
+    btnEditarRutina.addEventListener('click', () => {
+      rutinaSection.classList.add('hidden');
+      progresoSection.classList.add('hidden');
+      editarRutinaSection.classList.remove('hidden');
+      populateEditMes();
+    });
 
-    // ------------------------------------------------------------
-    // 4. FORMULARIO DE PROGRESO
-    // ------------------------------------------------------------
+    // =============================================================
+    // 4. SECCIÓN EDITAR RUTINAS (INTERFAZ AMIGABLE)
+    // =============================================================
+    const editMesSelect = document.getElementById('editMesSelect');
+    const editDiaSelect = document.getElementById('editDiaSelect');
+    const editExerciseName = document.getElementById('editExerciseName');
+    const editExerciseDetail = document.getElementById('editExerciseDetail');
+    const addExerciseBtn = document.getElementById('addExerciseBtn');
+    const editRoutineList = document.getElementById('editRoutineList');
+    const cancelEditRutina = document.getElementById('cancelEditRutina');
+    const saveRoutineBtn = document.getElementById('saveRoutineBtn');
+
+    function populateEditMes() {
+      editMesSelect.innerHTML = '';
+      for (let mes in routine) {
+        let option = document.createElement('option');
+        option.value = mes;
+        option.textContent = mes;
+        editMesSelect.appendChild(option);
+      }
+      populateEditDia();
+    }
+    function populateEditDia() {
+      let mes = editMesSelect.value;
+      editDiaSelect.innerHTML = '';
+      if(routine[mes]) {
+        for(let dia in routine[mes]) {
+          let option = document.createElement('option');
+          option.value = dia;
+          option.textContent = dia;
+          editDiaSelect.appendChild(option);
+        }
+      }
+      displayEditRoutineList();
+    }
+    function displayEditRoutineList() {
+      let mes = editMesSelect.value;
+      let dia = editDiaSelect.value;
+      editRoutineList.innerHTML = '';
+      if(routine[mes] && routine[mes][dia]) {
+        routine[mes][dia].forEach((exercise, index) => {
+          let div = document.createElement('div');
+          div.className = 'flex justify-between items-center border p-2 mb-2';
+          div.innerHTML = `<div>
+                              <p class="font-semibold">${exercise.nombre}</p>
+                              <p class="text-sm text-gray-600">${exercise.detalle}</p>
+                           </div>
+                           <button class="bg-red-500 text-white px-2 rounded hover:bg-red-600" onclick="deleteExercise('${mes}', '${dia}', ${index})">Eliminar</button>`;
+          editRoutineList.appendChild(div);
+        });
+      }
+    }
+    // Para que la función sea accesible en el onclick
+    window.deleteExercise = function(mes, dia, index) {
+      routine[mes][dia].splice(index, 1);
+      displayEditRoutineList();
+    }
+    editMesSelect.addEventListener('change', populateEditDia);
+    editDiaSelect.addEventListener('change', displayEditRoutineList);
+    addExerciseBtn.addEventListener('click', () => {
+      let mes = editMesSelect.value;
+      let dia = editDiaSelect.value;
+      let nombre = editExerciseName.value.trim();
+      let detalle = editExerciseDetail.value.trim();
+      if(!nombre || !detalle) {
+        alert("Ingresa nombre y detalle del ejercicio.");
+        return;
+      }
+      if(!routine[mes]) {
+        routine[mes] = {};
+      }
+      if(!routine[mes][dia]) {
+        routine[mes][dia] = [];
+      }
+      routine[mes][dia].push({nombre, detalle});
+      editExerciseName.value = '';
+      editExerciseDetail.value = '';
+      displayEditRoutineList();
+    });
+    saveRoutineBtn.addEventListener('click', () => {
+      saveRoutine();
+      alert("Rutinas actualizadas exitosamente.");
+      displayRutina("Mes 1");
+    });
+    cancelEditRutina.addEventListener('click', () => {
+      editarRutinaSection.classList.add('hidden');
+      rutinaSection.classList.remove('hidden');
+    });
+
+    // =============================================================
+    // 5. FORMULARIO DE PROGRESO
+    // =============================================================
     const progressForm = document.getElementById('progressForm');
     const progressDate = document.getElementById('progressDate');
     const progressMesSelect = document.getElementById('progressMes');
     const progressDiaSelect = document.getElementById('progressDia');
     const progressEjercicioSelect = document.getElementById('progressEjercicio');
     const seriesContainer = document.getElementById('seriesContainer');
-
     progressMesSelect.addEventListener('change', populateProgressDay);
     progressDiaSelect.addEventListener('change', populateProgressEjercicio);
-
     function populateProgressDay() {
       progressDiaSelect.innerHTML = '<option value="">Seleccione Día</option>';
       progressEjercicioSelect.innerHTML = '<option value="">Seleccione Ejercicio</option>';
-      // Usamos el value tal cual ("Mes 1", "Mes 2", "Mes 3")
       const mes = progressMesSelect.value;
       if (routine[mes]) {
         const dias = Object.keys(routine[mes]);
@@ -414,7 +570,6 @@
         });
       }
     }
-
     function populateProgressEjercicio() {
       progressEjercicioSelect.innerHTML = '<option value="">Seleccione Ejercicio</option>';
       const mes = progressMesSelect.value;
@@ -428,7 +583,6 @@
         });
       }
     }
-
     function addSeriesRow() {
       const row = document.createElement('div');
       row.className = 'flex space-x-2';
@@ -441,23 +595,19 @@
       delBtn.addEventListener('click', () => row.remove());
       seriesContainer.appendChild(row);
     }
-
     document.getElementById('addSeriesBtn').addEventListener('click', addSeriesRow);
     // Fila inicial
     addSeriesRow();
-
     progressForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const dateVal = progressDate.value;
-      const mesVal = progressMesSelect.value; // "Mes 1", "Mes 2", "Mes 3"
+      const mesVal = progressMesSelect.value;
       const diaVal = progressDiaSelect.value;
       const ejVal = progressEjercicioSelect.value;
-
       if (!dateVal || !mesVal || !diaVal || !ejVal) {
         alert("Por favor completa la Fecha, Mes, Día y Ejercicio.");
         return;
       }
-
       const rows = seriesContainer.querySelectorAll('div.flex');
       let series = [];
       rows.forEach((row, i) => {
@@ -472,7 +622,6 @@
         alert("Agrega al menos una serie válida.");
         return;
       }
-
       let progress = JSON.parse(localStorage.getItem('gymProgress')) || [];
       let existingDay = progress.find(d => d.date === dateVal);
       if (!existingDay) {
@@ -481,8 +630,7 @@
       }
       existingDay.workouts.push({ mes: mesVal, dia: diaVal, ejercicio: ejVal, series });
       localStorage.setItem('gymProgress', JSON.stringify(progress));
-
-      // Reset
+      // Reset del formulario
       progressForm.reset();
       seriesContainer.innerHTML = '';
       addSeriesRow();
@@ -490,19 +638,16 @@
       updateChart();
     });
 
-    // ------------------------------------------------------------
-    // 5. HISTORIAL
-    // ------------------------------------------------------------
+    // =============================================================
+    // 6. HISTORIAL DE PROGRESO CON OPCIÓN DE BORRAR
+    // =============================================================
     function loadProgressList() {
       const progressList = document.getElementById('progressList');
       let progress = JSON.parse(localStorage.getItem('gymProgress')) || [];
-
       if (progress.length === 0) {
         progressList.innerHTML = "<p class='text-gray-500'>No hay entradas registradas aún.</p>";
         return;
       }
-
-      // Ordenar por fecha desc
       progress.sort((a,b) => new Date(b.date) - new Date(a.date));
       let html = '';
       progress.forEach(day => {
@@ -517,31 +662,68 @@
         `;
         day.workouts.forEach((w,i) => {
           html += `
-            <div class="bg-gray-50 rounded p-2 my-2">
-              <p class="font-semibold text-sm">
-                Entreno #${i+1}: ${w.mes}, ${w.dia}, Ejercicio: ${w.ejercicio}
-              </p>
-              <ul class="list-disc ml-4 text-sm">
+            <div class="bg-gray-50 rounded p-2 my-2 flex justify-between items-center">
+              <div>
+                <p class="font-semibold text-sm">Entreno #${i+1}: ${w.mes}, ${w.dia}, Ejercicio: ${w.ejercicio}</p>
+                <ul class="list-disc ml-4 text-sm">
           `;
           w.series.forEach(s => {
             html += `<li>Serie ${s.serie}: ${s.reps} reps, ${s.peso} kg</li>`;
           });
-          html += '</ul></div>';
+          html += `</ul>
+              </div>
+              <button onclick="deleteWorkout('${day.date}', ${i})" class="bg-red-500 text-white px-2 rounded hover:bg-red-600">
+                Eliminar
+              </button>
+            </div>
+          `;
         });
         html += `</div></div>`;
       });
       progressList.innerHTML = html;
     }
-
     function toggleHistory(el) {
       el.classList.toggle('hidden');
     }
-
+    function deleteWorkout(date, workoutIndex) {
+      let progress = JSON.parse(localStorage.getItem('gymProgress')) || [];
+      let dayRecord = progress.find(d => d.date === date);
+      if(dayRecord) {
+        dayRecord.workouts.splice(workoutIndex, 1);
+        if(dayRecord.workouts.length === 0) {
+          progress = progress.filter(d => d.date !== date);
+        }
+        localStorage.setItem('gymProgress', JSON.stringify(progress));
+        loadProgressList();
+        updateChart();
+      }
+    }
     loadProgressList();
 
-    // ------------------------------------------------------------
-    // 6. GRÁFICA (Chart.js)
-    // ------------------------------------------------------------
+    // Botón para exportar historial como CSV
+    document.getElementById('exportProgressBtn').addEventListener('click', () => {
+      let progress = JSON.parse(localStorage.getItem('gymProgress')) || [];
+      let csv = "Fecha,Mes,Día,Ejercicio,Serie,Reps,Peso\n";
+      progress.forEach(day => {
+        day.workouts.forEach(workout => {
+          workout.series.forEach(series => {
+            csv += `"${day.date}","${workout.mes}","${workout.dia}","${workout.ejercicio}",${series.serie},${series.reps},${series.peso}\n`;
+          });
+        });
+      });
+      let blob = new Blob([csv], {type: "text/csv;charset=utf-8;"});
+      let url = URL.createObjectURL(blob);
+      let a = document.createElement('a');
+      a.href = url;
+      a.download = 'gymProgress.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
+
+    // =============================================================
+    // 7. GRÁFICA (Chart.js) CON DOS LÍNEAS: Peso y Reps, con etiquetas de datos
+    // =============================================================
     let chart;
     const ctx = document.getElementById('progressChart').getContext('2d');
     const chartMesSelect = document.getElementById('chartMes');
@@ -549,11 +731,10 @@
     const chartEjercicioSelect = document.getElementById('chartEjercicio');
     const chartSerieSelect = document.getElementById('chartSerie');
     const updateChartBtn = document.getElementById('updateChartBtn');
-
     chartMesSelect.addEventListener('change', () => {
       chartDiaSelect.innerHTML = '<option value="">Seleccione Día</option>';
       chartEjercicioSelect.innerHTML = '<option value="">Seleccione Ejercicio</option>';
-      const mes = chartMesSelect.value; // "Mes 1", "Mes 2", "Mes 3"
+      const mes = chartMesSelect.value;
       if (routine[mes]) {
         const dias = Object.keys(routine[mes]);
         dias.forEach(d => {
@@ -564,7 +745,6 @@
         });
       }
     });
-
     chartDiaSelect.addEventListener('change', () => {
       chartEjercicioSelect.innerHTML = '<option value="">Seleccione Ejercicio</option>';
       const mes = chartMesSelect.value;
@@ -578,9 +758,7 @@
         });
       }
     });
-
     updateChartBtn.addEventListener('click', updateChart);
-
     function getAllWorkouts() {
       let progress = JSON.parse(localStorage.getItem('gymProgress')) || [];
       const all = [];
@@ -595,69 +773,82 @@
           });
         });
       });
-      // Orden asc
       all.sort((a,b) => new Date(a.date) - new Date(b.date));
       return all;
     }
-
     function updateChart() {
-      const selMes = chartMesSelect.value; // "Mes 1", "Mes 2", "Mes 3"
+      const selMes = chartMesSelect.value;
       const selDia = chartDiaSelect.value;
       const selEjercicio = chartEjercicioSelect.value;
       const selSerie = chartSerieSelect.value;
-
       let all = getAllWorkouts();
       if (selMes) all = all.filter(w => w.mes === selMes);
       if (selDia) all = all.filter(w => w.dia === selDia);
       if (selEjercicio) all = all.filter(w => w.ejercicio === selEjercicio);
-
       if (!selSerie) {
         alert("Selecciona una serie (1,2,3,4 o 5) para graficar.");
         return;
       }
-
-      // Ordenar por fecha asc
       all.sort((a,b) => new Date(a.date) - new Date(b.date));
-
       const labels = [];
-      const dataPoints = [];
+      const weightDataPoints = [];
+      const repsDataPoints = [];
       all.forEach(w => {
         const found = w.series.find(s => s.serie.toString() === selSerie);
         if (found) {
           labels.push(w.date);
-          dataPoints.push(parseFloat(found.peso));
+          weightDataPoints.push(parseFloat(found.peso));
+          repsDataPoints.push(parseFloat(found.reps));
         }
       });
-
       if (chart) chart.destroy();
-
       chart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: labels,
-          datasets: [{
-            label: 'Peso (kg)',
-            data: dataPoints,
-            borderColor: 'rgba(75,192,192,1)',
-            backgroundColor: 'rgba(75,192,192,0.2)',
-            tension: 0.1,
-            pointRadius: 5,
-            pointHoverRadius: 7
-          }]
+          datasets: [
+            {
+              label: 'Peso (kg)',
+              data: weightDataPoints,
+              borderColor: 'rgba(75,192,192,1)',
+              backgroundColor: 'rgba(75,192,192,0.2)',
+              tension: 0.1,
+              pointRadius: 5,
+              pointHoverRadius: 7
+            },
+            {
+              label: 'Repeticiones',
+              data: repsDataPoints,
+              borderColor: 'rgba(192,75,75,1)',
+              backgroundColor: 'rgba(192,75,75,0.2)',
+              tension: 0.1,
+              pointRadius: 5,
+              pointHoverRadius: 7
+            }
+          ]
         },
         options: {
           responsive: true,
+          plugins: {
+            datalabels: {
+              display: true,
+              color: 'black',
+              anchor: 'end',
+              align: 'top',
+              formatter: function(value) {
+                return value;
+              }
+            },
+            legend: { display: true }
+          },
           scales: {
             x: {
               title: { display: true, text: 'Fecha' }
             },
             y: {
-              title: { display: true, text: 'Peso (kg)' },
+              title: { display: true, text: 'Valor' },
               suggestedMin: 0
             }
-          },
-          plugins: {
-            legend: { display: true }
           }
         }
       });
